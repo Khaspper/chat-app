@@ -1,32 +1,44 @@
-import { useEffect, useState } from "react";
-import { addDoc, collection, onSnapshot, serverTimestamp, query, where } from "firebase/firestore";
+import React, { useState, useEffect } from "react";
 import { db, auth } from "../firebase-config";
-import '../styles/Chat.css';
+import {
+  collection,
+  addDoc,
+  where,
+  serverTimestamp,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
 
-export const Chat = (props) => {
-  const {room} = props
-  const [newMessage, setNewMessage] = useState('')
-  const [messages, setMessages] = useState([])
+import "../styles/Chat.css";
 
-  const messagesRef = collection(db, 'messages')
+export const Chat = ({ room }) => {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const messagesRef = collection(db, "messages");
 
   useEffect(() => {
-    const queryMessages = query(messagesRef, where("room", "==", room));
-    const unsuscribe =  onSnapshot(queryMessages, (snapshot) => {
-      let messages = []
+    const queryMessages = query(
+      messagesRef,
+      where("room", "==", room),
+      orderBy("createdAt")
+    );
+    const unsuscribe = onSnapshot(queryMessages, (snapshot) => {
+      let messages = [];
       snapshot.forEach((doc) => {
-        messages.push({...doc.data(), id: doc.id})
+        messages.push({ ...doc.data(), id: doc.id });
       });
-      setMessages(messages)
+      console.log(messages);
+      setMessages(messages);
     });
 
-    return () => unsuscribe()
-  }, [])
+    return () => unsuscribe();
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
     if (newMessage === "") return;
-
     await addDoc(messagesRef, {
       text: newMessage,
       createdAt: serverTimestamp(),
@@ -35,30 +47,29 @@ export const Chat = (props) => {
     });
 
     setNewMessage("");
-
   };
 
   return (
     <div className="chat-app">
       <div className="header">
-        <h1> Welcome to: {room.toUpperCase()} </h1>
+        <h1>Welcome to: {room.toUpperCase()}</h1>
       </div>
-      <div className="messages"> 
+      <div className="messages">
         {messages.map((message) => (
-          <div className="message" key={message.id}>
-            <span className="user"> {message.user} </span> 
-            {message.text}
+          <div key={message.id} className="message">
+            <span className="user">{message.user}:</span> {message.text}
           </div>
         ))}
       </div>
-      <form className="new-message-form" onSubmit={handleSubmit}>
-        <input 
+      <form onSubmit={handleSubmit} className="new-message-form">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(event) => setNewMessage(event.target.value)}
           className="new-message-input"
           placeholder="Type your message here..."
-          onChange={(e) => setNewMessage(e.target.value)}
-          value={newMessage}
         />
-        <button type='submit' className="send-button">
+        <button type="submit" className="send-button">
           Send
         </button>
       </form>
