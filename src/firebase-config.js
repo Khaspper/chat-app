@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: "AIzaSyCrQicusTCGtoE0qgnS0uLdEZnUTLGFKpc",
@@ -15,3 +16,4 @@ const app = initializeApp(firebaseConfig);
 // This is how we get users to sign-in
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
+export const db = getFirestore(app);
